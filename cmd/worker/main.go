@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -12,21 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	"app/internal/agent"
 	"app/internal/config"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
 
 const (
-	missionStreamName    = "MISSION"
-	missionWorkerName    = "MISSION_WORKER"
-	missionCreateSubject = "mission.created"
+	missionStreamName = "MISSION"
+	missionWorkerName = "MISSION_WORKER"
 )
-
-type missionCreatedEvent struct {
-	MissionID string `json:"mission_id"`
-	ForceFail bool   `json:"force_fail"`
-}
 
 func main() {
 	natsConfig, err := config.LoadNATS()
@@ -67,7 +59,7 @@ func main() {
 	defer stop()
 
 	consumerCtx, err := consumer.Consume(func(msg jetstream.Msg) {
-		if err := processMission(msg); err != nil {
+		if err := agent.Process(shutdownCtx, msg, natsConfig.MissionConsumer.AckWait/2); err != nil {
 			slog.Error(
 				"process mission failed; message remains unacknowledged",
 				"error", err,
@@ -87,7 +79,7 @@ func main() {
 		}
 
 		slog.Info(
-			"nission processed and acknowlede",
+			"mission processed and acknowlede",
 			"subject", msg.Subject(),
 		)
 	})
@@ -101,24 +93,4 @@ func main() {
 	slog.Info("MISSION worker started", "consumer", missionWorkerName)
 	<-shutdownCtx.Done()
 	slog.Info("MISSION worker stopped")
-}
-
-func processMission(msg jetstream.Msg) error {
-	var event missionCreatedEvent
-
-	if err := json.Unmarshal(msg.Data(), &event); err != nil {
-		return fmt.Errorf("decode mission payload: %w", err)
-	}
-
-	if event.MissionID == "" {
-		return errors.New("mission_id is required")
-	}
-
-	if event.ForceFail {
-		return errors.New("forced mission processing failure")
-	}
-
-	slog.Info("processing mission", "mission_id", event.MissionID)
-
-	return nil
 }

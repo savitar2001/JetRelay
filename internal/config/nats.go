@@ -10,12 +10,12 @@ import (
 )
 
 type NATSConfig struct {
-	URL string
+	URL             string
 	MissionConsumer MissionConsumerConfig
 }
 
 type MissionConsumerConfig struct {
-	AckWait time.Duration
+	AckWait    time.Duration
 	MaxDeliver int
 }
 
@@ -43,7 +43,7 @@ func LoadNATS() (NATSConfig, error) {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil || parsed < 1 {
 			return NATSConfig{}, fmt.Errorf(
-				"MISSION_MAX_DELIVER must be a positive integer: %q", 
+				"MISSION_MAX_DELIVER must be a positive integer: %q",
 				raw,
 			)
 		}
@@ -53,7 +53,7 @@ func LoadNATS() (NATSConfig, error) {
 	return NATSConfig{
 		URL: natsURL,
 		MissionConsumer: MissionConsumerConfig{
-			AckWait: ackWait,
+			AckWait:    ackWait,
 			MaxDeliver: maxDeliver,
 		},
 	}, nil

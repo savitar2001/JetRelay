@@ -14,15 +14,14 @@ import (
 )
 
 const (
-	missionStreamName = "MISSION"
+	missionStreamName    = "MISSION"
 	missionStreamSubject = "mission.>"
-	missionWorkerName = "MISSION_WORKER"
-	missionCreatedSubject = "mission.created"
+	missionWorkerName    = "MISSION_WORKER"
 
-	missionDLQStreamName = "MISSION_DLQ"
+	missionDLQStreamName    = "MISSION_DLQ"
 	missionDLQStreamSubject = "dlq.mission.>"
 
-	missionMaxDeliveryEventsStreamName = "MISSION_MAX_DELIVERY_EVENTS"
+	missionMaxDeliveryEventsStreamName    = "MISSION_MAX_DELIVERY_EVENTS"
 	missionMaxDeliveryEventsStreamSubject = "$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.MISSION.MISSION_WORKER"
 )
 
@@ -102,15 +101,14 @@ func connectWithRetry(url string, attempts int, retryDelay time.Duration) (*nats
 	return nil, lastErr
 }
 
-
 func ensureMissionStream(
 	ctx context.Context,
 	js jetstream.JetStream,
 ) (jetstream.Stream, error) {
 	return ensureStream(ctx, js, jetstream.StreamConfig{
-		Name: missionStreamName,
-		Subjects: []string{missionStreamSubject},
-		Storage: jetstream.FileStorage,
+		Name:      missionStreamName,
+		Subjects:  []string{missionStreamSubject},
+		Storage:   jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy,
 	})
 }
@@ -120,9 +118,9 @@ func ensureMissionDLQStream(
 	js jetstream.JetStream,
 ) (jetstream.Stream, error) {
 	return ensureStream(ctx, js, jetstream.StreamConfig{
-		Name: missionDLQStreamName,
-		Subjects: []string{missionDLQStreamSubject},
-		Storage: jetstream.FileStorage,
+		Name:      missionDLQStreamName,
+		Subjects:  []string{missionDLQStreamSubject},
+		Storage:   jetstream.FileStorage,
 		Retention: jetstream.LimitsPolicy,
 	})
 }
@@ -141,11 +139,11 @@ func ensureMissionMaxDeliveryEventsStream(
 
 func ensureMissionWorker(ctx context.Context, stream jetstream.Stream, consumerConfig config.MissionConsumerConfig) error {
 	_, err := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
-		Durable: missionWorkerName,
-		FilterSubject: missionCreatedSubject,
-		AckPolicy: jetstream.AckExplicitPolicy,
-		AckWait: consumerConfig.AckWait,
-		MaxDeliver: consumerConfig.MaxDeliver,
+		Durable:       missionWorkerName,
+		FilterSubject: "mission.created.*",
+		AckPolicy:     jetstream.AckExplicitPolicy,
+		AckWait:       consumerConfig.AckWait,
+		MaxDeliver:    consumerConfig.MaxDeliver,
 	})
 
 	if err != nil {

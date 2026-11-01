@@ -21,23 +21,23 @@ import (
 const (
 	missionDLQStreamName = "MISSION_DLQ"
 
-	missionMaxDeliveryEventsStreamName= "MISSION_MAX_DELIVERY_EVENTS"
-	missionDLQCollectorName = "MISSION_DLQ_COLLECTOR"
+	missionMaxDeliveryEventsStreamName = "MISSION_MAX_DELIVERY_EVENTS"
+	missionDLQCollectorName            = "MISSION_DLQ_COLLECTOR"
 
 	collectorAckWait = 30 * time.Second
 	operationTimeout = 10 * time.Second
 )
 
 type maxDeliverAdvisory struct {
-	Stream string `json:"stream"`
-	Consumer string `json:"consumer"`
-	StreamSeq uint64 `json:"stream_seq"`
-	Deliveries uint64 `json:"deliveries"`
-	Timestamp time.Time `json:"timestamp"`
+	Stream     string    `json:"stream"`
+	Consumer   string    `json:"consumer"`
+	StreamSeq  uint64    `json:"stream_seq"`
+	Deliveries uint64    `json:"deliveries"`
+	Timestamp  time.Time `json:"timestamp"`
 }
 
 type quarantinedMessage struct {
-	QuarantineID string `json:"quarantine_id"`
+	QuarantineID string    `json:"quarantine_id"`
 	QuarantineAt time.Time `json:"quarantine_at"`
 
 	Source quarantinedSource `json:"source"`
@@ -46,14 +46,14 @@ type quarantinedMessage struct {
 }
 
 type quarantinedSource struct {
-	Stream string `json:"stream"`
-	Consumer string `json:"consumer"`
-	Subject string `json:"subject"`
-	StreamSeq uint64 `json:"stream_seq"`
-	Deliveries uint64 `json:"deliveries"`
-	PublishedAt time.Time `json:"published_at"`
-	FailedAt time.Time `json:"failed_at"`
-	Headers map[string][]string `json:"header,omitempty"`
+	Stream      string              `json:"stream"`
+	Consumer    string              `json:"consumer"`
+	Subject     string              `json:"subject"`
+	StreamSeq   uint64              `json:"stream_seq"`
+	Deliveries  uint64              `json:"deliveries"`
+	PublishedAt time.Time           `json:"published_at"`
+	FailedAt    time.Time           `json:"failed_at"`
+	Headers     map[string][]string `json:"header,omitempty"`
 }
 
 func main() {
@@ -90,10 +90,10 @@ func main() {
 	collector, err := eventStream.CreateOrUpdateConsumer(
 		setupCtx,
 		jetstream.ConsumerConfig{
-			Durable: missionDLQCollectorName,
+			Durable:       missionDLQCollectorName,
 			DeliverPolicy: jetstream.DeliverAllPolicy,
-			AckPolicy: jetstream.AckExplicitPolicy,
-			AckWait: collectorAckWait,
+			AckPolicy:     jetstream.AckExplicitPolicy,
+			AckWait:       collectorAckWait,
 			MaxAckPending: 1,
 		},
 	)
@@ -106,12 +106,12 @@ func main() {
 		quarantineID, err := quarantineMessage(js, eventMsg)
 		if err != nil {
 			slog.Error(
-					"quarantine max-delivery event failed; advisory remains unacknowledged",
-					"error", err,
+				"quarantine max-delivery event failed; advisory remains unacknowledged",
+				"error", err,
 			)
 			return
 		}
-		
+
 		ackCtx, cancelAck := context.WithTimeout(
 			context.Background(),
 			operationTimeout,
