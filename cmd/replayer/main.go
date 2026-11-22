@@ -19,17 +19,17 @@ import (
 
 const (
 	missionDLQStreamName = "MISSION_DLQ"
-	operationTimeout = 10 * time.Second
+	operationTimeout     = 10 * time.Second
 )
 
 type dlqEnvelope struct {
-	QuarantineID string `json:"quarantine_id"`
-	Source dlqSource `json:"source"`
-	PayloadBase64 string `json:"payload_base64"`
+	QuarantineID  string    `json:"quarantine_id"`
+	Source        dlqSource `json:"source"`
+	PayloadBase64 string    `json:"payload_base64"`
 }
 
 type dlqSource struct {
-	Subject string `json:"subject"`
+	Subject string              `json:"subject"`
 	Headers map[string][]string `json:"header,omitempty"`
 }
 
@@ -48,7 +48,7 @@ func main() {
 
 	flag.Parse()
 
-	if *dlqSequence == 0{
+	if *dlqSequence == 0 {
 		log.Fatal("-sequence must be greater than zero")
 	}
 
